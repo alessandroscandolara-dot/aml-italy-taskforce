@@ -34,7 +34,7 @@ jobs:
           SNOWFLAKE_ROLE:      ${{ secrets.SNOWFLAKE_ROLE }}
           NOTION_TOKEN:        ${{ secrets.NOTION_TOKEN }}
           SLACK_TOKEN:         ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL_ID:    ${{ secrets.SLACK_CHANNEL_ID }}
+          # SLACK_CHANNEL_ID: aggiungere quando arriva approvazione IT
           # ID del database "Task Force date" — fisso, non cambia mai
           NOTION_TF_DATE_DB:   36b31ee4c69680d0b768f67dc5fd01b9
           # Data source ID del database "Task Force date"
