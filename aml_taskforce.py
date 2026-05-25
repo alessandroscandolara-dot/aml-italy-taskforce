@@ -38,8 +38,7 @@ NOTION_TOKEN      = os.environ["NOTION_TOKEN"]
 NOTION_TF_DATE_DB = os.environ["NOTION_TF_DATE_DB"]   # ID database "Task Force date"
 NOTION_TF_DATE_DS = os.environ["NOTION_TF_DATE_DS"]   # Data source ID
 
-SLACK_TOKEN      = os.environ["SLACK_TOKEN"]
-SLACK_CHANNEL_ID = os.environ["SLACK_CHANNEL_ID"]
+SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")  # opzionale — aggiungere quando arriva approvazione IT
 
 TODAY     = date.today()
 TODAY_ISO = TODAY.isoformat()
@@ -326,7 +325,11 @@ TF_EMOJI = {
 }
 
 def send_slack(page_url: str, alerts: list):
-    # Conta per TF
+    """Invia notifica Slack via webhook. Se SLACK_WEBHOOK_URL non è configurato, salta."""
+    if not SLACK_WEBHOOK_URL:
+        print("[Slack] SLACK_WEBHOOK_URL non configurato — notifica saltata")
+        return
+
     counts = {}
     for row in alerts:
         tf = row.get("task_force") or "Altro"
@@ -351,24 +354,11 @@ def send_slack(page_url: str, alerts: list):
         f"Compilate il campo *Agente* con il vostro nome e aggiornate lo *Status* man mano che lavorate."
     )
 
-    r = requests.post(
-        "https://slack.com/api/chat.postMessage",
-        headers={
-            "Authorization": f"Bearer {SLACK_TOKEN}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "channel": SLACK_CHANNEL_ID,
-            "text": text,
-            "unfurl_links": False,
-        },
-        timeout=15,
-    )
-    data = r.json()
-    if not data.get("ok"):
-        print(f"[Slack] ERRORE: {data.get('error')}")
+    r = requests.post(SLACK_WEBHOOK_URL, json={"text": text}, timeout=15)
+    if r.status_code == 200:
+        print("[Slack] Messaggio inviato")
     else:
-        print(f"[Slack] Messaggio inviato su {SLACK_CHANNEL_ID}")
+        print(f"[Slack] ERRORE {r.status_code}: {r.text[:200]}")
 
 # ─────────────────────────────────────────────
 # MAIN
