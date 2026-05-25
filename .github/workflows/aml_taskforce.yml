@@ -1,0 +1,42 @@
+name: AML Italy — Task Force giornaliera
+
+on:
+  schedule:
+    # Ogni giorno lun-ven alle 08:00 ora italiana (07:00 UTC in ora solare, 06:00 UTC in ora legale)
+    # Usiamo 06:00 UTC per coprire l'ora legale (CEST = UTC+2)
+    - cron: '0 6 * * 1-5'
+  workflow_dispatch:  # Permette esecuzione manuale dal pannello GitHub Actions
+
+jobs:
+  task-force:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dipendenze
+        run: pip install snowflake-connector-python requests
+
+      - name: Esegui task force
+        env:
+          SNOWFLAKE_ACCOUNT:   ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:      ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_TOKEN:     ${{ secrets.SNOWFLAKE_TOKEN }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_DATABASE:  ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_ROLE:      ${{ secrets.SNOWFLAKE_ROLE }}
+          NOTION_TOKEN:        ${{ secrets.NOTION_TOKEN }}
+          SLACK_TOKEN:         ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL_ID:    ${{ secrets.SLACK_CHANNEL_ID }}
+          # ID del database "Task Force date" — fisso, non cambia mai
+          NOTION_TF_DATE_DB:   36b31ee4c69680d0b768f67dc5fd01b9
+          # Data source ID del database "Task Force date"
+          NOTION_TF_DATE_DS:   36b31ee4-c696-801c-b544-000ba517216d
+        run: python aml_taskforce.py
